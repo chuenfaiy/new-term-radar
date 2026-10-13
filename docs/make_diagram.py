@@ -1,6 +1,7 @@
 """The radar's flow as an animated SVG, a GIF and an MP4: dots travel the connectors.
 
-  python make_radar_v2.py <variant> <out-basename>     variant: prod-zh | oss-zh | oss-en
+  python docs/make_diagram.py <variant> <out-basename> [--svg-only]
+  variant: prod-zh | oss-zh | oss-en
 
 rsvg-convert renders each frame (it does not run SVG animation) and ffmpeg joins them.
 """
@@ -18,7 +19,7 @@ CREDIT_TABLE = "子木 @CoderJeffLee"
 CREDIT_SOURCE = "by 饭特稀 | Fentix @fantexi997"
 
 ZH = {
-    "s1": ("① X 与 HF", "每 8 小时"), "s2": ("② GitHub", "爆发仓库"), "s3": ("③ 竞品与新站", "sitemap 新页"),
+    "s1": ("① X 与 HF", "每 8 小时"), "s2": ("② GitHub", "爆发仓库"), "s3": ("③ 站点信号", "竞品·新站·托管站"),
     "s4": ("④ 搜索控制台", "首次曝光的词 · 可选"),
     "judge": ("名字判断：是具体名字吗", "得分 ≥ 0.5 才留下"), "known": ("剔除你已经覆盖的词",),
     "sources": ("源头报告（每 8 小时）", "有新名字才出 · 附推文原文"),
@@ -39,7 +40,7 @@ PROD = {**ZH, "s2": ("② GitHub", "爆发仓库 · 共用词"), "s4": ("④ 搜
         "daily": ("日报邮件（每天 9:00）", "新词表在最前 · 线索存入线索库"),
         "legend": ("信号与取证", "邮件产出", "这次新增", "可选来源", "命中率写回日报")}
 EN = {
-    "s1": ("① X and HF", "every 8 hours"), "s2": ("② GitHub", "breakout repos"), "s3": ("③ Sitemaps", "pages just added"),
+    "s1": ("① X and HF", "every 8 hours"), "s2": ("② GitHub", "breakout repos"), "s3": ("③ Site signals", "maps · new · host"),
     "s4": ("④ Search Console", "optional"),
     "judge": ("Name judge: a name, or a common word?", "a score of 0.5 or more stays"), "known": ("Drop the terms you already cover",),
     "sources": ("Sources report (every 8 h)", "only on a new name · with the posts"),
@@ -137,11 +138,13 @@ def at(points, f):
     return points[-1]
 
 
-def main(variant, base):
+def main(variant, base, svg_only=False):
     head, body = scene(VARIANTS[variant])
     smil = "\n".join(f'<circle r="4" fill="{c}"><animateMotion dur="{dur}s" repeatCount="indefinite" begin="{b}s"><mpath href="#{i}"/></animateMotion></circle>'
                      for i, _, c, _, dur, b in PATHS)
     Path(base + ".svg").write_text(head + body + smil + "\n</svg>\n")
+    if svg_only:
+        return
     fps, seconds = 15, 4.8
     with tempfile.TemporaryDirectory() as tmp:
         for n in range(int(fps * seconds)):
@@ -158,4 +161,4 @@ def main(variant, base):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1], sys.argv[2])
+    main(sys.argv[1], sys.argv[2], "--svg-only" in sys.argv[3:])

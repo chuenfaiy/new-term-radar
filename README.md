@@ -12,7 +12,7 @@ A new name leaves a trail, in this order:
 
 1. A lab or a well-followed account says it on X; a model enters Hugging Face's trending list.
 2. One GitHub repo takes off on its own.
-3. Directories and competitors add pages for it; someone registers a domain for it and the site starts to rank.
+3. Directories and competitors add pages for it; someone registers a domain or a hosted subdomain starts gaining search traffic.
 4. Your own site gets its first search impressions for it.
 5. Google Trends shows the curve, days or weeks later.
 
@@ -22,7 +22,7 @@ One example it was built around: [Niko1221/Strata](https://github.com/Niko1221/S
 
 ## What it reads
 
-![How the radar works: four signals, a name judge, the keyword table, a daily report and a 14-day check; used from the command line, three Agent Skills or an MCP server](docs/radar.en.gif)
+![How the radar works: X and Hugging Face, GitHub, site signals including hosted subdomains, Search Console, a name judge, the keyword table, a daily report and a 14-day check](docs/radar.en.svg)
 
 | Signal | What it catches | Needs | Cost |
 |---|---|---|---|

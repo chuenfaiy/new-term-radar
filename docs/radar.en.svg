@@ -21,8 +21,8 @@
 <text x="262.5" y="63.5" fill="#712B13" font-weight="500">② GitHub</text>
 <text x="262.5" y="83.5" fill="#993C1D" font-size="12">breakout repos</text>
 <rect x="350" y="40" width="135" height="56" rx="4" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
-<text x="417.5" y="63.5" fill="#712B13" font-weight="500">③ Sitemaps</text>
-<text x="417.5" y="83.5" fill="#993C1D" font-size="12">pages just added</text>
+<text x="417.5" y="63.5" fill="#712B13" font-weight="500">③ Site signals</text>
+<text x="417.5" y="83.5" fill="#993C1D" font-size="12">maps · new · host</text>
 <rect x="505" y="40" width="135" height="56" rx="4" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
 <text x="572.5" y="63.5" fill="#712B13" font-weight="500">④ Search Console</text>
 <text x="572.5" y="83.5" fill="#993C1D" font-size="12">optional</text>

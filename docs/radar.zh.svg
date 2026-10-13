@@ -21,8 +21,8 @@
 <text x="262.5" y="63.5" fill="#712B13" font-weight="500">② GitHub</text>
 <text x="262.5" y="83.5" fill="#993C1D" font-size="12">爆发仓库</text>
 <rect x="350" y="40" width="135" height="56" rx="4" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
-<text x="417.5" y="63.5" fill="#712B13" font-weight="500">③ 竞品与新站</text>
-<text x="417.5" y="83.5" fill="#993C1D" font-size="12">sitemap 新页</text>
+<text x="417.5" y="63.5" fill="#712B13" font-weight="500">③ 站点信号</text>
+<text x="417.5" y="83.5" fill="#993C1D" font-size="12">竞品·新站·托管站</text>
 <rect x="505" y="40" width="135" height="56" rx="4" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
 <text x="572.5" y="63.5" fill="#712B13" font-weight="500">④ 搜索控制台</text>
 <text x="572.5" y="83.5" fill="#993C1D" font-size="12">首次曝光的词 · 可选</text>
