@@ -20,7 +20,7 @@ A run reads every X account in `config.json`: about 0.003 USD and 10 seconds eac
 ## Run
 
 ```bash
-python -m radar daily --skip usecases,review,newsites --out listening.md
+python -m radar daily --skip usecases,review,newsites,hosted --out listening.md
 ```
 
 This reads X, Hugging Face, GitHub breakouts and the sitemaps, merges terms seen by several signals, and scores each as a name or a common word. It writes `listening.md` and `listening.json`.

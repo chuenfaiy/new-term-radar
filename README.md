@@ -31,12 +31,13 @@ One example it was built around: [Niko1221/Strata](https://github.com/Niko1221/S
 | ② GitHub breakout | A repo under 14 days old averaging 200+ stars a day, or +400 since yesterday; adds the search variants people use ("niko strata") | nothing (a GitHub token raises the rate limit) | free |
 | ③ Sitemaps | Words that several new URLs on a site share and its older URLs rarely carried | the sitemaps you list | free |
 | ③ New sites | Domains registered and first indexed in the last 90 days that already rank for 20+ keywords | AIsa key | about $0.13 per query, weekly |
+| ③ Hosted sites | Subdomains on `vercel.app` and similar hosts whose estimated organic search traffic has grown since the previous weekly scan | AIsa key | one paid query per host each week; check actual billing |
 | ④ Search Console | Queries your site got impressions for, for the first time (fresh data) | your own Google token | free |
 | ⑤ Review | Each lead checked in Google Trends 14 days later, against its own baseline; hit rate and days ahead per signal | AIsa key | $0.0012 per search variant |
 | Keyword table | For the day's new names: the generic search terms behind them (what people do with the new thing), each sized and given a decision | AIsa key; [GoAnyAPI](https://goanyapi.com) key optional | about $0.15 a day for 5 names, $0.22 with GoAnyAPI |
 | Name judge | A small model scores every term: the name of one specific thing, or a common word? | AIsa key | a fraction of a cent per run |
 
-Prices are what AIsa charged in October 2026. With the example config (35 X accounts read three times a day, the keyword table for 5 names a day) a month costs about $15: $10 for the X reads, $5 for the keyword table. Read fewer accounts, or read them once a day, and it drops in proportion.
+Prices are what AIsa charged in October 2026. With the example config (35 X accounts read three times a day, the keyword table for 5 names a day) the daily parts cost about $15 a month: $10 for the X reads, $5 for the keyword table; weekly new-site and hosted-site queries are extra. Read fewer accounts, or read them once a day, and it drops in proportion.
 
 ## The keyword table
 
@@ -114,7 +115,7 @@ export AISA_API_KEY=...                 # from https://go.aisa.one/yansen-zhu; o
 python -m radar daily --out report.md
 ```
 
-The first run builds its snapshots: yesterday's X vocabulary, star counts and sitemap URLs do not exist yet, so only GitHub breakouts (which need no yesterday) are reported. From the second run on, every signal reports what changed.
+The first run builds its snapshots: yesterday's X vocabulary, star counts, sitemap URLs and hosted-site traffic do not exist yet, so only GitHub breakouts (which need no yesterday) are reported. From the second run on, every signal reports what changed.
 
 Two commands:
 
@@ -125,7 +126,7 @@ python -m radar daily --skip x,hf --out report.md  # everything else, once a day
 
 `sources` writes a report only when there is a new name. `daily` with `--skip x,hf` lists what `sources` kept in the last 24 hours. If you run only once a day, use `python -m radar daily` and skip nothing.
 
-Other flags: `--skip` takes any of `x,hf,breakout,sitemaps,newsites,gsc,review,judge,usecases`; `--new-sites` runs the weekly signal today; `--mail` sends the report (below); `--state DIR` moves the database and snapshots.
+Other flags: `--skip` takes any of `x,hf,breakout,sitemaps,newsites,hosted,gsc,review,judge,usecases`; `--new-sites` runs the weekly new-site and hosted-site signals today; `--mail` sends the report (below); `--state DIR` moves the database and snapshots.
 
 ## What a report looks like
 
@@ -168,11 +169,14 @@ and from `sources`:
 | `judge` | `model` (any chat model on AIsa) and `min_score` (0.5) |
 | `breakout` | `window_days`, `min_stars`, `velocity_min` (stars a day), `delta_min` (stars since yesterday) |
 | `new_sites` | `queries`: a name and a SQL LIKE pattern on the domain (`"%ai%"`), one paid query each; `weekday` (0 = Monday) |
+| `hosted_sites` | `hosts`: hosting domains such as `vercel.app`, `github.io`, `netlify.app` and `pages.dev`, one paid query each; `weekday` (0 = Monday); `location_code` (US = 2840 by default); `limit` (up to 1000 subdomains per host); `min_etv` and `min_keywords` control the snapshot; `min_delta` and `min_ratio` define growth since the prior scan. Empty `hosts` disables it. |
 | `review` | `after_days` (14) and `per_day` (5 leads a day) |
 | `usecases` | The keyword table. `per_day` (names read a day, 0 = off), `model`, `benchmark` (the keyword sizes are compared with), `min_volume` (monthly searches a phrase needs), `min_daily` (searches a day for "prioritize"), `recheck_days` (3), `related` (use related queries when `GOANYAPI_API_KEY` is set), `related_geo` (`US`), `country_trends` (read the bigger rows' curves from that country), `country_min_volume` (1000) and `country_max` (8) |
 | `gsc` | `site` (`sc-domain:example.com`) and `token_file`. Leave `{}` to turn the signal off |
 
 Please read each site's robots.txt before you add its sitemap, and keep `pause` at or above its crawl-delay. The example config makes a few dozen requests a day in total, spaced by `pause`.
+
+The hosted-site signal follows [this Web.Cafe article](https://new.web.cafe/topic/z0vu7k8587): inspect hosted subdomains that already have traffic and the needs they serve. It compares [DataForSEO Subdomains](https://docs.dataforseo.com/v3/dataforseo_labs-google-subdomains-live/) **estimated monthly organic search traffic** each week, not Similarweb's all-channel visits. The first scan only saves a baseline. Only the top `limit` subdomains of each host are covered; 🆕 means absent from the previous scan, not newly launched. Open the site to check the actual use case.
 
 ### Search Console (optional)
 

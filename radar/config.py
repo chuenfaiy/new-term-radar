@@ -20,6 +20,8 @@ DEFAULTS = {
     "judge": {"model": "gpt-4.1-mini", "min_score": 0.5},
     "breakout": {"window_days": 14, "min_stars": 300, "velocity_min": 200, "delta_min": 400},
     "new_sites": {"queries": {"ai": "%ai%"}, "weekday": 0, "window_days": 90, "min_etv": 1000, "min_keywords": 20},
+    "hosted_sites": {"hosts": [], "weekday": 0, "location_code": 2840, "limit": 1000,
+                     "min_etv": 100, "min_keywords": 10, "min_delta": 100, "min_ratio": 1.5},
     "review": {"after_days": 14, "per_day": 5},
     "usecases": {"per_day": 5, "model": "claude-sonnet-4-6", "min_volume": 50, "trends_max": 10, "recheck_days": 3,
                  "location_code": 2840, "benchmark": "gpts", "min_daily": 300, "related": True, "related_geo": "US",

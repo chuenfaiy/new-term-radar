@@ -1,6 +1,6 @@
 ---
 name: new-term-radar
-description: One run from signal to decision. Finds the names of new AI models, products and repositories seen in the last 24 hours (X, Hugging Face, GitHub, sitemaps), then builds a keyword priority table for them, each new name and the generic search terms behind it, sized against Google Ads volume and Google Trends, with prioritize, watch or skip. Use when the user wants today's new AI keywords, an AI trend radar, or asks what new AI terms are worth building a page or tool for. Also takes names the user already has. Runs the new-term-radar command line; needs an AISA_API_KEY.
+description: One run from signal to decision. Finds the names of new AI models, products and repositories seen across X, Hugging Face, GitHub, sitemaps and weekly site signals, then builds a keyword priority table for them, each new name and the generic search terms behind it, sized against Google Ads volume and Google Trends, with prioritize, watch or skip. Use when the user wants today's new AI keywords, an AI trend radar, or asks what new AI terms are worth building a page or tool for. Also takes names the user already has. Runs the new-term-radar command line; needs an AISA_API_KEY.
 ---
 
 # New-term radar
@@ -30,7 +30,7 @@ About 0.05 USD a name plus 0.09 USD a call, 40 to 90 seconds a name, eight names
 python -m radar daily --out report.md
 ```
 
-With the example config this is about 0.30 USD and 10 to 15 minutes: it reads every X account in `config.json` (0.003 USD and 10 seconds each), finds breakout repositories and new sitemap pages, scores which terms are names, then builds the keyword table for up to five of the day's names. It writes `report.md` and `report.json`.
+On ordinary days this is about 0.30 USD and 10 to 15 minutes: it reads every X account in `config.json` (0.003 USD and 10 seconds each), finds breakout repositories and new sitemap pages, scores which terms are names, then builds the keyword table for up to five of the day's names. Weekly new-site and hosted-subdomain scans add paid queries; check their configured query and host counts before quoting a total. It writes `report.md` and `report.json`.
 
 Say the cost and the time before either command, and do not run `daily` twice in a row: the second run reports only what changed since the first.
 

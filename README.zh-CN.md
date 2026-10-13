@@ -31,12 +31,13 @@
 | ② GitHub 爆发 | 创建不到 14 天、平均每天涨 200 星以上，或比昨天多 400 星的仓库；附带大家实际会搜的写法（「niko strata」） | 无（有 GitHub token 限额更高） | 免费 |
 | ③ 竞品 sitemap | 某个站新增的几个网址共用、而它的旧网址里很少出现的词 | 你列出的 sitemap | 免费 |
 | ③ 新站 | 近 90 天注册且首次被收录、已经有 20 个以上排名词的域名 | AIsa key | 每个查询约 $0.13，每周一次 |
+| ③ 托管站 | `vercel.app` 等平台的子域名，自然搜索流量估值比上次每周扫描明显增长 | AIsa key | 每个托管域名一次付费查询，每周一次；以实际账单为准 |
 | ④ Search Console | 你的站第一次获得曝光的查询词（用新鲜数据） | 你自己的 Google 授权 | 免费 |
 | ⑤ 复盘 | 每条线索 14 天后去 Google Trends 核对，和它自己的基线比；按信号统计命中率和提前天数 | AIsa key | 每个搜索写法 $0.0012 |
 | 新词表 | 针对当天的新名字:找出它背后的通用搜索词(大家拿这个新东西做什么),逐个估算规模并给出决策 | AIsa key；[GoAnyAPI](https://goanyapi.com) key 可选 | 5 个名字约每天 $0.15，加上 GoAnyAPI 约 $0.22 |
 | 名字判断 | 小模型给每个词打分：是某个具体东西的名字，还是普通词？ | AIsa key | 每次不到一美分 |
 
-价格是 2026 年 10 月 AIsa 的实际收费。按示例配置（35 个 X 账号、每天读三次，新词表每天读 5 个名字），一个月约 $15：读 X 约 $10，新词表约 $5。少读几个账号或者每天只读一次，费用按比例下降。
+价格是 2026 年 10 月 AIsa 的实际收费。按示例配置（35 个 X 账号、每天读三次，新词表每天读 5 个名字），日常部分一个月约 $15：读 X 约 $10，新词表约 $5；每周的新站和托管站查询另计。少读几个账号或者每天只读一次，费用按比例下降。
 
 ## 新词表
 
@@ -114,7 +115,7 @@ export AISA_API_KEY=...                 # 从 https://go.aisa.one/yansen-zhu 获
 python -m radar daily --out report.md
 ```
 
-第一次运行只是建立快照：昨天的 X 词表、星数、sitemap 网址都还没有，所以只会报出 GitHub 爆发仓库（它不依赖昨天的数据）。从第二次运行起，每个信号都会报告变化。
+第一次运行只是建立快照：昨天的 X 词表、星数、sitemap 网址和托管站流量都还没有，所以只会报出 GitHub 爆发仓库（它不依赖昨天的数据）。从第二次运行起，每个信号才会报告变化。
 
 两个命令：
 
@@ -125,7 +126,7 @@ python -m radar daily --skip x,hf --out report.md  # 其余全部，每天一次
 
 `sources` 只在有新名字时才写报告。`daily` 带 `--skip x,hf` 时，会列出 `sources` 在过去 24 小时记下的线索。如果你每天只跑一次，直接用 `python -m radar daily`，什么都不跳过。
 
-其他参数：`--skip` 可选 `x,hf,breakout,sitemaps,newsites,gsc,review,judge,usecases`；`--new-sites` 让每周信号今天就跑；`--mail` 发邮件（见下）；`--state DIR` 指定数据库和快照的目录。
+其他参数：`--skip` 可选 `x,hf,breakout,sitemaps,newsites,hosted,gsc,review,judge,usecases`；`--new-sites` 让新站和托管站的每周信号今天就跑；`--mail` 发邮件（见下）；`--state DIR` 指定数据库和快照的目录。
 
 ## 报告长什么样
 
@@ -161,11 +162,14 @@ python -m radar daily --skip x,hf --out report.md  # 其余全部，每天一次
 | `judge` | `model`（AIsa 上任意对话模型）和 `min_score`（默认 0.5） |
 | `breakout` | `window_days`、`min_stars`、`velocity_min`（每天涨星）、`delta_min`（比昨天多的星） |
 | `new_sites` | `queries`：名称和域名的 SQL LIKE 模式（`"%ai%"`），每个是一次付费查询；`weekday`（0 = 周一） |
+| `hosted_sites` | `hosts`：托管域名，如 `vercel.app`、`github.io`、`netlify.app`、`pages.dev`，每个是一次付费查询；`weekday`（0 = 周一）；`location_code`（默认美国 2840）；`limit`（每个平台最多 1000 个子域名）；`min_etv`、`min_keywords` 是进入快照的门槛；`min_delta`、`min_ratio` 是相对上次扫描的起量门槛。空 `hosts` 关闭。 |
 | `review` | `after_days`（14）和 `per_day`（每天复盘 5 条） |
 | `usecases` | 新词表。`per_day`（每天读几个名字，0 = 关闭）、`model`、`benchmark`（用来比规模的基准词）、`min_volume`（写法至少要有的月搜索量）、`min_daily`（判为「优先」所需的日搜）、`recheck_days`（3）、`related`（设了 `GOANYAPI_API_KEY` 时是否用相关查询）、`related_geo`（`US`）、`country_trends`（规模较大的行改读该国数据）、`country_min_volume`（1000）、`country_max`（8） |
 | `gsc` | `site`（`sc-domain:example.com`）和 `token_file`。留 `{}` 即关闭 |
 
 添加某个站的 sitemap 之前，请先看它的 robots.txt，`pause` 不要低于它的 crawl-delay。示例配置每天总共几十次请求，按 `pause` 间隔发出。
+
+托管站渠道参考[哥飞的文章](https://new.web.cafe/topic/z0vu7k8587)：找已经获得流量的托管子域名，再看它解决的需求。这里用 [DataForSEO 的 Subdomains 数据](https://docs.dataforseo.com/v3/dataforseo_labs-google-subdomains-live/)按周比较**自然搜索月访问估值**，不是 Similarweb 的全站访问量；首次运行只建基线。只覆盖每个平台估值最高的 `limit` 个站，`🆕` 表示上次扫描未进入这份名单，不代表刚上线。平台的子域名可能是预览站或品牌站，需打开核实需求。
 
 ### Search Console（可选）
 

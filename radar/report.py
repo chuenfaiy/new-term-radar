@@ -10,7 +10,7 @@ SHOWN = 20
 OTHER_TERMS = 15
 POSTS_SHOWN = 3   # posts quoted in full per term
 # signal key -> label key, in the order of how early the signal comes
-KINDS = ["x", "hf", "breakout", "sitemap", "newsite", "usecase", "cosearch", "watch"]
+KINDS = ["x", "hf", "breakout", "sitemap", "newsite", "hosted", "usecase", "cosearch", "watch"]
 
 
 def leads(cfg: dict, blocks: dict[str, dict]) -> tuple[list[dict], dict]:
@@ -106,6 +106,27 @@ def _new_site_lines(ns: dict, cfg: dict) -> list[str]:
                     f"{r['etv']} | {r['keywords']} |" for r in sites]
 
 
+def _hosted_lines(hs: dict, cfg: dict) -> list[str]:
+    if hs.get("skipped"):
+        return []
+    c = cfg["hosted_sites"]
+    lines = ["", t("hosted_h", delta=c["min_delta"], ratio=c["min_ratio"]), ""]
+    if hs.get("error"):
+        return lines + [hs["error"]]
+    if hs.get("baselines"):
+        lines.append(t("hosted_baseline", hosts=", ".join(hs["baselines"])))
+    if hs.get("errors"):
+        lines.append(t("hosted_errors", details="; ".join(f"{k}: {v}" for k, v in hs["errors"].items())))
+    sites = hs.get("sites") or []
+    if not sites:
+        if len(hs.get("baselines") or []) + len(hs.get("errors") or {}) >= hs.get("hosts", 0):
+            return lines  # no host had two successful scans to compare
+        return lines + [t("hosted_none")]
+    lines += [t("hosted_cols"), "|---|---|---|---|---|"]
+    return lines + [f"| {'🆕 ' if r['new'] else ''}[{r['domain']}](https://{r['domain']}) | {r['host']} | "
+                    f"{r['previous_etv']} | {r['etv']} | +{r['delta']} | {r['keywords']} |" for r in sites]
+
+
 def _gsc_lines(gsc: dict) -> list[str]:
     if gsc.get("off"):
         return []
@@ -178,10 +199,11 @@ def daily(cfg: dict, lead: list[dict], b: dict[str, dict], gsc: dict, rev: dict,
             else [t("recent_none", why=recent.get("error") or t("no_new_names"))]
     lines += _breakout_lines(b["breakout"], cfg)
     lines += _new_site_lines(b.get("newsite", {"skipped": True}), cfg)
+    lines += _hosted_lines(b.get("hosted", {"skipped": True}), cfg)
     lines += _gsc_lines(gsc)
     lines += _review_lines(cfg, rev, summ)
     lines += _status_lines(b, extra)
-    lines.append(t("cost", cost=_cost(b["x"], rev, b.get("newsite", {}), extra.get("usecases", {}))))
+    lines.append(t("cost", cost=_cost(b["x"], rev, b.get("newsite", {}), b.get("hosted", {}), extra.get("usecases", {}))))
     return "\n".join(lines) + "\n"
 
 

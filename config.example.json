@@ -27,6 +27,9 @@
   "judge": {"model": "gpt-4.1-mini", "min_score": 0.5},
   "breakout": {"window_days": 14, "min_stars": 300, "velocity_min": 200, "delta_min": 400},
   "new_sites": {"queries": {"ai": "%ai%", "video": "%video%"}, "weekday": 0},
+  "hosted_sites": {"hosts": ["vercel.app", "github.io", "netlify.app", "pages.dev"], "weekday": 0,
+                   "location_code": 2840, "limit": 1000, "min_etv": 100, "min_keywords": 10,
+                   "min_delta": 100, "min_ratio": 1.5},
   "review": {"after_days": 14, "per_day": 5},
   "usecases": {"per_day": 5, "model": "claude-sonnet-4-6", "benchmark": "gpts", "min_volume": 50, "min_daily": 300, "related": true, "related_geo": "US", "country_trends": true, "country_min_volume": 1000, "country_max": 8},
 

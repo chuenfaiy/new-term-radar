@@ -9,6 +9,7 @@ Signals:
   ② breakout  one new GitHub repo taking off on its own
   ③ sitemaps  pages other sites added since the last run
   ③ newsites  domains registered in the last 90 days that already rank (weekly; AIsa)
+  ③ hosted    hosted subdomains gaining estimated organic traffic (weekly; AIsa)
   ④ gsc       queries your own site got impressions for, for the first time (optional)
   ⑤ review    leads from 14 days ago checked in Google Trends; hit rate per signal (AIsa)
   usecases    the generic terms behind today's names, sized against a benchmark keyword (AIsa)
@@ -36,10 +37,10 @@ import sys
 from datetime import date
 from pathlib import Path
 
-from . import breakout, config, gsc, new_sites, notify, report, review, sitemaps, sources, store, usecases
+from . import breakout, config, gsc, hosted_sites, new_sites, notify, report, review, sitemaps, sources, store, usecases
 from .i18n import t
 
-SKIPPABLE = {"x", "hf", "breakout", "sitemaps", "newsites", "gsc", "review", "judge", "usecases"}
+SKIPPABLE = {"x", "hf", "breakout", "sitemaps", "newsites", "hosted", "gsc", "review", "judge", "usecases"}
 
 
 def run(fn, skip: bool = False) -> dict:
@@ -76,12 +77,14 @@ def cmd_sources(args, cfg: dict, state: Path) -> int:
 
 def cmd_daily(args, cfg: dict, state: Path) -> int:
     weekly = args.new_sites or date.today().weekday() == cfg["new_sites"]["weekday"]
+    hosted_weekly = args.new_sites or date.today().weekday() == cfg["hosted_sites"]["weekday"]
     blocks = {
         "x": run(lambda: sources.x_new(cfg, state), "x" in args.skip),
         "hf": run(lambda: sources.hf_new(cfg, state), "hf" in args.skip),
         "breakout": run(lambda: breakout.breakouts(cfg, state), "breakout" in args.skip),
         "sitemap": run(lambda: sitemaps.diff(cfg, state), "sitemaps" in args.skip),
         "newsite": run(lambda: new_sites.new_sites(cfg, state), "newsites" in args.skip or not weekly),
+        "hosted": run(lambda: hosted_sites.hosted_sites(cfg, state), "hosted" in args.skip or not hosted_weekly or not cfg["hosted_sites"]["hosts"]),
     }
     found = run(lambda: gsc.gsc_new(cfg), "gsc" in args.skip)
     lead, judged = report.leads(cfg, blocks)
@@ -166,7 +169,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--state", default="state", help="directory for radar.db and the snapshots")
     p.add_argument("--out", help="write the report (Markdown) here; `daily` also writes a .json beside it")
     p.add_argument("--skip", default="", help="comma-separated: " + ",".join(sorted(SKIPPABLE)))
-    p.add_argument("--new-sites", action="store_true", help="run the weekly new-site signal today")
+    p.add_argument("--new-sites", action="store_true", help="run the weekly new-site and hosted-subdomain signals today")
     p.add_argument("--mail", action="store_true", help="mail the report (see radar/notify.py)")
     args = p.parse_args(argv)
     args.skip = {s for s in args.skip.split(",") if s}

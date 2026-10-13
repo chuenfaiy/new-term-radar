@@ -6,7 +6,7 @@ from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 from radar import __main__ as cli
-from radar import breakout, config, gsc, i18n, judge, new_sites, notify, report, review, sitemaps, store
+from radar import breakout, config, gsc, hosted_sites, i18n, judge, new_sites, notify, report, review, sitemaps, store
 from radar.sources import base_name, novel_names
 from radar.terms import names
 
@@ -169,6 +169,39 @@ def test_new_sites_query_needs_both_dates(cfg):
     body = new_sites._calls(cfg["new_sites"], date(2026, 10, 6))[0]["arguments"]["body"][0]
     fields = [f[0] for f in body["filters"] if isinstance(f, list)]
     assert fields[:2] == ["created_datetime", "first_seen"] and body["filters"][0][2].startswith("2026-07-08")
+
+
+def test_hosted_sites_needs_two_scans_and_keeps_failed_host_baseline(cfg, tmp_path, monkeypatch):
+    cfg["hosted_sites"]["hosts"] = ["vercel.app", "pages.dev"]
+    def answer(etv):
+        return {"tasks": [{"status_code": 20000, "result": [{"items": [
+            {"subdomain": "photocraft.vercel.app", "metrics": {"organic": {"etv": etv, "count": 40}}},
+            {"subdomain": "vercel.app", "metrics": {"organic": {"etv": 9000, "count": 400}}},
+            {"subdomain": "preview.foo.vercel.app", "metrics": {"organic": {"etv": 3000, "count": 50}}},
+        ]}]}]}
+    replies = iter([
+        ({"vercel.app": answer(200), "pages.dev": answer(200)}, 1000),
+        ({"vercel.app": answer(450)}, 1000),
+        ({"vercel.app": answer(500)}, 1000),
+    ])
+    monkeypatch.setattr(hosted_sites.aisa, "call_all", lambda calls: next(replies))
+    first = hosted_sites.hosted_sites(cfg, tmp_path)
+    assert first["baselines"] == ["vercel.app", "pages.dev"] and first["sites"] == []
+    second = hosted_sites.hosted_sites(cfg, tmp_path)
+    assert [(r["domain"], r["delta"]) for r in second["sites"]] == [("photocraft.vercel.app", 250)]
+    assert [r["term"] for r in second["terms"]] == ["photocraft"]
+    assert second["errors"] == {"pages.dev": "subdomains API call failed"}
+    assert "pages.dev" in hosted_sites.snap.load(tmp_path / "hosted_sites.json.gz")
+    assert hosted_sites.hosted_sites(cfg, tmp_path)["sites"] == []  # +50 is below the floor
+
+
+def test_hosted_sites_request_is_organic_and_bounded(cfg):
+    cfg["hosted_sites"]["hosts"] = ["vercel.app"]
+    call = hosted_sites._calls(cfg["hosted_sites"])[0]
+    body = call["arguments"]["body"][0]
+    assert call["tool"] == hosted_sites.TOOL
+    assert body["target"] == "vercel.app" and body["item_types"] == ["organic"]
+    assert body["limit"] == 1000 and body["order_by"] == ["metrics.organic.etv,desc"]
 
 
 # --- ④ Search Console ---------------------------------------------------------------------
