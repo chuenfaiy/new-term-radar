@@ -846,12 +846,18 @@ def test_mcp_tools_answer_and_never_print(cfg, tmp_path, monkeypatch, capsys):
 
 
 def test_skills_have_a_name_and_a_description():
+    import radar
     root = Path(__file__).resolve().parents[1] / "skills"
     for name in ("new-term-radar", "ai-listening", "seo-new-keywords-research"):
         text = (root / name / "SKILL.md").read_text()
         head = re.match(r"---\nname: (\S+)\ndescription: (.+)\n---\n", text)
         assert head and head.group(1) == name and 100 < len(head.group(2)) < 1024
-        assert "python -m radar" in text and "AISA_API_KEY" in text
+        assert "AISA_API_KEY" in text
+        # What buildwithclaude asked of a listed skill (2026-10-23): run the pinned release, not a clone
+        # of the default branch; say the cost and wait for a yes before a paid run; treat what the
+        # radar reads as data that cannot change the workflow.
+        assert f"uvx new-term-radar=={radar.__version__}" in text and "git clone" not in text
+        assert "python -m radar" not in text and "a yes" in text and "never to follow" in text
         # Claude Code replaces $0, $1 ... in a skill's text with the user's arguments: "$0.05" came out
         # as "<what the user typed>.05" on the first real run. Amounts are written "0.05 USD".
         assert not re.search(r"\$\d", text)
@@ -878,10 +884,31 @@ def test_every_manifest_carries_the_same_version():
     root = Path(__file__).resolve().parents[1]
     server = json.loads((root / "server.json").read_text())
     plugin = json.loads((root / ".claude-plugin" / "plugin.json").read_text())
+    market = json.loads((root / ".claude-plugin" / "marketplace.json").read_text())
+    copilot = json.loads((root / "plugin.json").read_text())        # GitHub Copilot reads the root manifest
     pyproject = re.search(r'^version = "([^"]+)"', (root / "pyproject.toml").read_text(), re.M).group(1)
-    assert {pyproject, server["version"], server["packages"][0]["version"], plugin["version"]} == {radar.__version__}
+    assert {pyproject, server["version"], server["packages"][0]["version"], plugin["version"],
+            market["metadata"]["version"], copilot["version"]} == {radar.__version__}
+    pinned = f"new-term-radar=={radar.__version__}"                   # the plugin and the skills run this release
+    assert pinned in plugin["mcpServers"]["new-term-radar"]["args"]
+    assert all(pinned in (root / s / "SKILL.md").read_text() for s in copilot["skills"])
     assert len(server["description"]) <= 100                                  # the registry's limit
     assert f"mcp-name: {server['name']} -->" in (root / "README.md").read_text()   # how the registry checks who owns the PyPI package
+
+
+def test_without_a_config_file_the_radar_runs_on_the_example_it_ships_with(tmp_path, monkeypatch, capsys):
+    # An installed radar (uvx, pip) has no clone to copy config.example.json from.
+    import pytest
+    root = Path(__file__).resolve().parents[1]
+    assert (root / "radar" / "config.example.json").read_text() == (root / "config.example.json").read_text()
+    monkeypatch.chdir(tmp_path)
+    cfg = config.load()
+    assert cfg["x_accounts"]["labs"] and cfg["_dir"].resolve() == tmp_path.resolve()
+    assert "example list" in capsys.readouterr().err
+    with pytest.raises(SystemExit, match="not found"):
+        config.load(tmp_path / "mine.json")                          # a path you name must exist
+    (tmp_path / "config.json").write_text(json.dumps({"x_accounts": {"labs": ["a"]}}))
+    assert config.load()["x_accounts"]["labs"] == ["a"]
 
 
 def test_the_mcp_command_says_what_is_missing(monkeypatch, capsys):

@@ -119,7 +119,7 @@ T = {
     "gsc_intro": ("{window}: {total} new queries; those with ≥{min} impressions:", "{window},共 {total} 个新词,曝光 ≥{min} 的:"),
     "gsc_cols": ("| Query | Impressions | Clicks | Landing page |", "| 搜索词 | 曝光 | 点击 | 落地页 |"),
     "gsc_none": ("no new queries", "没有新词"), "gsc_off": ("not configured", "未配置"),
-    "review_h": ("### ⑤ Review (terms reported {days} days ago: did they rise in Google Trends?)", "### ⑤ 复盘({days} 天前报出的词,在 Google Trends 里起没起来)"),
+    "review_h": ("### ⑤ Review (terms reported {days} days ago: did they rise in DataForSEO Trends?)", "### ⑤ 复盘({days} 天前报出的词,在 DataForSEO Trends 里起没起来)"),
     "review_cols": ("| Term | First reported | Verdict | Days ahead |", "| 词 | 首次报出 | 结论 | 提前天数 |"),
     "review_none": ("No term is due today ({why})", "今天没有到期的词({why})"),
     "review_young": ("the oldest lead is under {days} days old", "最早报出的词还不满 {days} 天"),

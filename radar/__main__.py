@@ -14,7 +14,7 @@ Signals:
   ⑦ asks      what people ask for on Reddit ("is there an AI tool that…"), sized (weekly; AIsa)
   ⑧ sellers   sites that just put up a payment link: Stripe, Polar, Lemon Squeezy, Gumroad, Creem (weekly; AIsa)
   ④ gsc       queries your own site got impressions for, for the first time (optional)
-  ⑤ review    leads from 14 days ago checked in Google Trends; hit rate per signal (AIsa)
+  ⑤ review    leads from 14 days ago checked in DataForSEO Trends; hit rate per signal (AIsa)
   usecases    the generic terms behind today's names, sized against a benchmark keyword (AIsa)
 
   python -m radar keywords "name one" "name two" [--repo "name one=owner/repo"] [--json]
@@ -210,7 +210,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--repo", action="append", default=[], metavar="NAME=OWNER/REPO", help="for `keywords`: a name's GitHub repository")
     p.add_argument("--days", type=int, default=7, help="for `leads`: how far back")
     p.add_argument("--json", action="store_true", help="for `keywords` and `leads`: print JSON")
-    p.add_argument("--config", default="config.json")
+    p.add_argument("--config", help="default: ./config.json, or the example the radar ships with when there is none")
     p.add_argument("--state", default="state", help="directory for radar.db and the snapshots")
     p.add_argument("--out", help="write the report (Markdown) here; `daily` also writes a .json beside it")
     p.add_argument("--skip", default="", help="comma-separated: " + ",".join(sorted(SKIPPABLE)))
@@ -233,7 +233,7 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_leads(args, state)
     if args.command == "keywords" and not args.names:
         p.error("keywords: give at least one name")
-    cfg = config.load(Path(args.config))
+    cfg = config.load(Path(args.config) if args.config else None)
     if "judge" in args.skip:
         cfg["judge"]["model"] = ""
     state.mkdir(parents=True, exist_ok=True)
