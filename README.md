@@ -307,7 +307,7 @@ In Claude Code the three skills also install as a plugin:
 /plugin install new-term-radar@new-term-radar
 ```
 
-Then ask your agent for "today's new AI keywords", "an AI listening report" or "keyword research on PhotoCraft and SynthID Detector". The skills run the pinned release from PyPI (`uvx new-term-radar==0.5.1`), never a clone, keep their state in `~/new-term-radar`, tell you the cost and wait for your yes before any paid run, treat what they read as data rather than instructions, and say when a table is incomplete.
+Then ask your agent for "today's new AI keywords", "an AI listening report" or "keyword research on PhotoCraft and SynthID Detector". The skills run the pinned release from PyPI (`uvx new-term-radar==0.5.2`), never a clone, keep their state in `~/new-term-radar`, tell you the cost and wait for your yes before any paid run, treat what they read as data rather than instructions, and say when a table is incomplete.
 
 ### MCP server
 
@@ -338,6 +338,34 @@ Without uv: `pip install "new-term-radar[mcp]"`, then `"command": "new-term-rada
 | `run_radar` | One `sources` or `daily` run and its report | paid; minutes. For a first try: the schedule belongs in cron or Actions |
 
 Point `RADAR_STATE` at the directory your scheduled runs write to and `recent_leads` shows their leads. The same two commands exist on the command line: `python -m radar keywords "name" …` and `python -m radar leads`.
+
+### Codex, TRAE and WorkBuddy
+
+The same skills and server work in these agents too. Each starts the server with uvx, so [uv](https://docs.astral.sh/uv/) has to be installed.
+
+**Codex.** The skills: `npx skills add zhuyansen/new-term-radar -a codex` (add `-g` for every project). The server goes in `~/.codex/config.toml`, which the CLI, the IDE extension and the app share:
+
+```toml
+[mcp_servers.new-term-radar]
+command = "uvx"
+args = ["--with", "mcp", "new-term-radar", "mcp"]
+startup_timeout_sec = 120
+tool_timeout_sec = 900
+
+[mcp_servers.new-term-radar.env]
+AISA_API_KEY = "..."
+RADAR_STATE = "/absolute/path/to/state"
+```
+
+Codex gives a server 10 seconds to start and a tool 60 seconds to answer. The first start downloads the package, `keyword_table` takes 40 to 90 seconds a name and a `daily` run 5 to 15 minutes, so raise both as above. `codex mcp add new-term-radar --env AISA_API_KEY=... --env RADAR_STATE=/absolute/path/to/state -- uvx --with mcp new-term-radar mcp` writes the same entry without the two timeouts.
+
+**TRAE.** The skills: `npx skills add zhuyansen/new-term-radar -a trae` (TRAE CN: `-a trae-cn`). The server: Settings → MCP → Add → Add manually, and paste the JSON above. In TRAE CN you can instead paste this link into the browser's address bar; TRAE opens the server's configuration, where you fill in your AIsa key and an absolute path for `RADAR_STATE`, and confirm:
+
+```text
+trae-cn://trae.ai-ide/mcp-import?type=stdio&name=new-term-radar&config=eyJjb21tYW5kIjoidXZ4IiwiYXJncyI6WyItLXdpdGgiLCJtY3AiLCJuZXctdGVybS1yYWRhciIsIm1jcCJdLCJlbnYiOnsiQUlTQV9BUElfS0VZIjoiIiwiR09BTllBUElfQVBJX0tFWSI6IiIsIlJBREFSX1NUQVRFIjoiL2Fic29sdXRlL3BhdGgvdG8vc3RhdGUifX0%3D
+```
+
+**WorkBuddy.** Put the JSON above in `~/.workbuddy/mcp.json`, or paste it under Plugins → MCP servers → Configure MCP.
 
 ## Run it on GitHub Actions
 

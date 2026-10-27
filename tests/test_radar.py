@@ -845,6 +845,26 @@ def test_mcp_tools_answer_and_never_print(cfg, tmp_path, monkeypatch, capsys):
     assert capsys.readouterr().out == ""        # stdout is the protocol channel
 
 
+def test_mcp_tools_say_why_they_failed(tmp_path, monkeypatch):
+    import pytest
+    pytest.importorskip("mcp")
+    from radar import aisa, mcp_server
+    # mcp 2.x shows the agent only "Error executing tool keyword_table" for any exception but a ToolError
+    monkeypatch.setenv("RADAR_STATE", str(tmp_path / "state"))
+
+    def no_key(*args):
+        raise aisa.AisaError("no AIsa key: set AISA_API_KEY, or log in with the AIsa CLI (`aisa login`)")
+    monkeypatch.setattr(cli, "keyword_table", no_key)
+    with pytest.raises(mcp_server.ToolError, match="no AIsa key"):
+        mcp_server._keyword_table(["photocraft"], {})
+
+    def read_only(state, days):                 # RADAR_STATE unset, and a client that starts the server in "/"
+        raise OSError(30, "Read-only file system", "state")
+    monkeypatch.setattr(cli, "kept_leads", read_only)
+    with pytest.raises(mcp_server.ToolError, match="Read-only file system.*RADAR_STATE sets the folder"):
+        mcp_server.recent_leads(7)
+
+
 def test_skills_have_a_name_and_a_description():
     import radar
     root = Path(__file__).resolve().parents[1] / "skills"
